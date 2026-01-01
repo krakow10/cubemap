@@ -45,7 +45,7 @@ impl CylindricalToCubemapSubcommand {
 			.into_rgba8();
 		let (src_w, src_h) = src_image.dimensions();
 
-		// let's project a cylinder of radius 1 and height 2
+		// let's project a cylinder of radius 1 and height 1
 		// onto our cubemap around the origin of size 2
 
 		// === BACK ===
@@ -57,20 +57,20 @@ impl CylindricalToCubemapSubcommand {
 			for y in 0..res {
 				// this is the position of the point on the cubemap
 				let cubemap_pos =
-					glam::Vec3A::new(x as f32 / res as f32, y as f32 / res as f32, -1.0);
+					glam::Vec3A::new(x as f32 / res as f32, y as f32 / res as f32, -0.5);
 
 				// Find cylinder yaw angle
-				let cylinder_x = cubemap_pos.x.atan2(cubemap_pos.z);
+				let cylinder_x = cubemap_pos.x.atan2(-cubemap_pos.z)*4.0;
 				// Find cylinder height
-				let cylinder_y = cubemap_pos.y / cubemap_pos.xz().length();
+				let cylinder_y = cubemap_pos.y / cubemap_pos.xz().length()*4.0;
 
 				// convert to src image pixels
-				let src_x =
-					(cylinder_x * src_w as f32 / core::f32::consts::TAU).rem_euclid(src_w as f32);
+				let src_x = (cylinder_x * src_w as f32 / core::f32::consts::TAU) as i32;
 				let src_y = (cylinder_y + 1.0) * src_h as f32 / 2.0;
 
 				// copy src color to dst pixel
-				let src_pixel = src_image.get_pixel(src_x as u32, src_y as u32);
+				let src_pixel =
+					src_image.get_pixel(src_x.rem_euclid(src_w as i32) as u32, src_y as u32);
 				dst_image.put_pixel(x, y, *src_pixel);
 			}
 		}
